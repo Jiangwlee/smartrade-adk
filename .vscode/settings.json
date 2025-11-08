@@ -1,0 +1,16 @@
+{
+  "search.exclude": {
+    "ai_memory": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.uv_cache": true,
+    "**/.venv": true
+  }
+}

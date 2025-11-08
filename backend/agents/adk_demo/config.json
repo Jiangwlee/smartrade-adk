@@ -1,0 +1,16 @@
+{
+  "name": "ADK Demo",
+  "description": "ADK Demo，可以回答关于纽约(New York City)的天气问题",
+  "app_type": "chatbot",
+  "capabilities": [
+    "天气查询",
+    "问答",
+    "对话"
+  ],
+  "ui_config": {
+    "theme": "modern",
+    "layout": "chat",
+    "features": ["voice", "file_upload"]
+  },
+  "created_at": "2025-08-04T10:27:43.184368"
+}
