@@ -1,4 +1,5 @@
 set dotenv-load := true
+set export
 
 # Backend commands - 统一的 web server 管理
 run-backend servers="all":
@@ -11,4 +12,4 @@ stop-backend servers="all":
 
 run-adk:
     @echo "🚀 启动ADK服务"
-    adk web backend/agents
+    adk web backend/agents --session_service_uri=$SUPABASE_DATABASE_URL

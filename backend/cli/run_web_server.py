@@ -30,8 +30,8 @@ AGENT_DIR = "backend/agents/"
 
 # 服务器配置映射
 SERVER_CONFIG = {
-    "default": {"port": 8000, "name": "Default Web Server"},
-    "adk": {"port": 8001, "name": "ADK Web Server"},
+    "smartrade": {"port": 8000, "name": "Smartrade Web Server"},
+    # "adk": {"port": 8001, "name": "ADK Web Server"},
 }
 
 
@@ -82,7 +82,14 @@ def start_single_server(
     if server_name == "smartrade":
         from .smartrade_web_server import get_smartrade_web_app
 
-        app = get_smartrade_web_app(agent_dir=AGENT_DIR, allow_origins=allow_origins_list)
+        app = get_smartrade_web_app(
+            agents_dir=AGENT_DIR, 
+            session_service_uri=session_service_uri,
+            artifact_service_uri=artifact_service_uri,
+            memory_service_uri=memory_service_uri,
+            eval_storage_uri=eval_storage_uri,
+            allow_origins=allow_origins_list,
+        )
 
     elif server_name == "adk":
         from google.adk.cli.fast_api import get_fast_api_app
@@ -284,7 +291,7 @@ def start(
 @click.option(
     "--servers",
     default="all",
-    help="要停止的服务器 (all|swkj|adk|ango)",
+    help="要停止的服务器 (all|smartrade|adk)",
 )
 @click.option(
     "--log-level",

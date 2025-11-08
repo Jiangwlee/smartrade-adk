@@ -14,7 +14,7 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .base import APIException
-from backend.shared.responses.schemas import ApiError, ErrorDetail
+from backend.schemas.responses import ApiError, ErrorDetail
 from .error_codes import ErrorCode
 from ..config.settings import settings
 
