@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 from typing import Mapping
 from typing import Optional
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from starlette.types import Lifespan
 from watchdog.observers import Observer
@@ -96,21 +96,23 @@ class AdkFastAPIEndpoint:
             use_in_memory_services=False,
         )
 
-    def add_adk_fastapi_endpoint(self, app: FastAPI, path: str = "/"):
+    def get_copilotkit_endpoint_router(self):
         """Add ADK middleware endpoint to FastAPI app.
 
         Args:
-            app: FastAPI application instance
+            api_router: FastAPI application parent api router
             path: API endpoint path
         """
 
-        @app.post(path)
+        adk_router = APIRouter(prefix="/adk")
+
+        @adk_router.post("/copilotkit")
         async def run(input_data: RunAgentInput, request: Request):
             """ADK middleware endpoint."""
 
             # Get the accept header from the request
             accept_header = request.headers.get("accept")
-            agent_name = path.lstrip("/")
+            agent_name = "copilotkit".lstrip("/")
 
             agent = self._build_adk_agent(agent_name)
 
@@ -174,6 +176,8 @@ class AdkFastAPIEndpoint:
             return StreamingResponse(
                 event_generator(), media_type=encoder.get_content_type()
             )
+        
+        return adk_router
 
 
     def create_adk_web_server(

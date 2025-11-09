@@ -15,7 +15,7 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 const runtime = new CopilotRuntime({
   agents: {
     // Our AG-UI endpoint URL
-    "my_agent": new HttpAgent({ url: "http://localhost:8000/" }),
+    "adk_demo": new HttpAgent({ url: "http://localhost:8000/api/adk/copilotkit/adk_demo" }),
   }
 });
 

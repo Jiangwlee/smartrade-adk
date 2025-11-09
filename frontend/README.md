@@ -1,0 +1,1 @@
+[Copilot集成Google ADK](https://docs.copilotkit.ai/adk/quickstart?path=exiting-agent)

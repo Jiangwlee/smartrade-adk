@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, APIRouter
 from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 from typing import Optional, Mapping, List, Any
@@ -61,6 +61,9 @@ def get_smartrade_web_app(
     register_exception_handlers(app)
     logger.info("Global exception handlers registered")
 
+    # 统一路由前缀
+    api = APIRouter(prefix="/api")
+
     # 挂载应用管理路由
     adk_endpoint = AdkFastAPIEndpoint()
     adk_endpoint.create_adk_web_server(
@@ -75,7 +78,10 @@ def get_smartrade_web_app(
         logo_text=logo_text,
         logo_image_url=logo_image_url,
     )
-    adk_endpoint.add_adk_fastapi_endpoint(app)
+    api.include_router(adk_endpoint.get_copilotkit_endpoint_router())
+
+    # 将 api router 注册到 FastAPI app
+    app.include_router(api)
 
     logger.info("Smartrade Web Server initialized successfully")
 
