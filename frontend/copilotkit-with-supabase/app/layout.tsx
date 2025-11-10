@@ -37,6 +37,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CopilotProvider runtimeUrl="/api/copilotkit" agent="smart_trader">
+          {/* <CopilotProvider runtimeUrl="/api/copilotkit" agent="adk_demo"> */}
             {children}
           </CopilotProvider>
         </ThemeProvider>

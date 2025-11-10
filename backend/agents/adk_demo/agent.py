@@ -2,7 +2,7 @@ import datetime
 from zoneinfo import ZoneInfo
 from google.adk.agents import Agent
 
-from backend.llm.litellm_adapter import get_litellm_model
+from backend.llm.litellm_adapter import get_doubao_model
 
 def get_weather(city: str) -> dict:
     """Retrieves the current weather report for a specified city.
@@ -58,8 +58,8 @@ def get_current_time(city: str) -> dict:
 
 root_agent = Agent(
     name="weather_time_agent",
-    # model=get_litellm_model("doubao/doubao-1.5-pro-32k-250115"),
-    model="gemini-2.0-flash",
+    model=get_doubao_model(),
+    # model="gemini-2.0-flash",
     description=(
         "Agent to answer questions about the time and weather in a city."
     ),

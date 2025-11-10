@@ -66,3 +66,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 工具调用气泡呼吸动画 */
+.tool-call-message {
+  max-width: 100% !important;
+  width: 100%;
+  margin-left: 0;
+  margin-right: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.tool-call-message.tool-bubble-pending {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: tool-breathe 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  border-radius: 15px;
+  padding: 8px 12px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.tool-call-card {
+  width: 100%;
+}
+
+@keyframes tool-breathe {
+  0%, 100% {
+    opacity: 0.75;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.5);
+  }
+}
