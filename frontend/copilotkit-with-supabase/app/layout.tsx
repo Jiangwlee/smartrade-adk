@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { CopilotKit } from "@copilotkit/react-core";
 import "@copilotkit/react-ui/styles.css";
 
 import "./globals.css";
+import { CopilotProvider } from "@/components/copilot-provider";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -36,9 +36,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <CopilotKit runtimeUrl="/api/copilotkit" agent="adk_demo">
+          <CopilotProvider runtimeUrl="/api/copilotkit" agent="smart_trader">
             {children}
-          </CopilotKit>
+          </CopilotProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -14,8 +14,9 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 //    integration to setup the connection.
 const runtime = new CopilotRuntime({
   agents: {
-    // Our AG-UI endpoint URL
+    // Our AG-UI endpoint URL - agent name is now part of the path
     "adk_demo": new HttpAgent({ url: "http://localhost:8000/api/adk/copilotkit/adk_demo" }),
+    "smart_trader": new HttpAgent({ url: "http://localhost:8000/api/adk/copilotkit/smart_trader" }),
   }
 });
 

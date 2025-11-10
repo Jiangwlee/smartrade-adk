@@ -3,12 +3,12 @@ from fastapi.responses import StreamingResponse
 from contextlib import asynccontextmanager
 from typing import Optional, Mapping, List, Any
 from fastapi.middleware.cors import CORSMiddleware
-from logging import getLogger
 
 from ..api.endpoint import AdkFastAPIEndpoint
 from ..exceptions.exception_handlers import register_exception_handlers
+from ..config.logging import setup_logging, get_logger
 
-logger = getLogger(__name__)
+logger = get_logger(__name__)
 
 # @asynccontextmanager
 # async def app_lifespan(app: FastAPI):
@@ -38,6 +38,9 @@ def get_smartrade_web_app(
     Returns:
         FastAPI 应用实例
     """
+
+    # 初始化全局日志系统（在应用启动时执行一次）
+    setup_logging()
 
     app = FastAPI(
         title="Smartrade Web Server",

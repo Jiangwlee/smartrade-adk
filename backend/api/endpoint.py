@@ -16,6 +16,8 @@ from ag_ui.core import RunAgentInput
 from ag_ui.encoder import EventEncoder
 from ag_ui_adk import ADKAgent
 from google.adk.cli.adk_web_server import AdkWebServer
+
+from .ag_ui_wrapper import SmartradeADKAgent
 from google.adk.cli.service_registry import get_service_registry
 from google.adk.sessions import InMemorySessionService
 from google.adk.artifacts import InMemoryArtifactService
@@ -28,9 +30,9 @@ from google.adk.cli.utils import envs
 from google.adk.cli.utils import evals
 from google.adk.cli.utils.agent_change_handler import AgentChangeEventHandler
 
-import logging
+from ..config.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AdkFastAPIEndpoint:
@@ -40,7 +42,7 @@ class AdkFastAPIEndpoint:
         self.adk_web_server = None
         self.extra_fast_api_args = {}
 
-    def _build_adk_agent(self, agent_name: str) -> ADKAgent:
+    def _build_adk_agent(self, agent_name: str) -> SmartradeADKAgent:
         """构建ADK Agent实例"""
         agent = self.adk_web_server.agent_loader.load_agent(agent_name)
 
@@ -62,22 +64,20 @@ class AdkFastAPIEndpoint:
             )
 
             if isinstance(input.forwarded_props, dict):
-                user_identity = input.forwarded_props.get("_user_identity", {})
-                logger.info(f"🔍 ADK Agent: user_identity extracted: {user_identity}")
-
-                if user_id := user_identity.get("user_id"):
+                user_id = input.forwarded_props.get("user_id", {})
+                if user_id :
                     logger.info(
                         f"✅ ADK Agent: Successfully extracted user_id from forwarded_props: {user_id}"
                     )
                     return user_id
                 else:
                     logger.warning(
-                        f"❌ ADK Agent: No user_id found in user_identity: {user_identity}"
+                        f"❌ ADK Agent: No user_id found in forwarded_props: {input.forwarded_props}"
                     )
 
             # Fallback：不应该走到这里
             # 如果走到这里，说明 AG-UI Router 没有正确注入 user_identity
-            fallback_id = f"thread_user_{input.thread_id}"
+            fallback_id = f"anonymous-test"
             logger.error(
                 f"❌ ADK Agent: No user_identity in forwarded_props for thread {input.thread_id}, "
                 f"falling back to {fallback_id}. "
@@ -85,7 +85,7 @@ class AdkFastAPIEndpoint:
             )
             return fallback_id
 
-        return ADKAgent(
+        return SmartradeADKAgent(
             adk_agent=agent,
             app_name=agent_name,
             user_id_extractor=extract_user_id_from_forwarded_props,
@@ -106,13 +106,22 @@ class AdkFastAPIEndpoint:
 
         adk_router = APIRouter(prefix="/adk")
 
-        @adk_router.post("/copilotkit")
-        async def run(input_data: RunAgentInput, request: Request):
-            """ADK middleware endpoint."""
+        @adk_router.post("/copilotkit/{agent_name}")
+        async def run(agent_name: str, input_data: RunAgentInput, request: Request):
+            """ADK middleware endpoint.
+
+            Args:
+                agent_name: Name of the agent to run (from path parameter)
+                input_data: Agent input data
+                request: HTTP request object
+            """
+
+            logger.info(f"Input data: {input_data}")
 
             # Get the accept header from the request
             accept_header = request.headers.get("accept")
-            agent_name = "copilotkit".lstrip("/")
+
+            logger.info(f"🚀 Running agent: {agent_name}")
 
             agent = self._build_adk_agent(agent_name)
 
