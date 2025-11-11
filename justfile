@@ -6,6 +6,10 @@ run-backend servers="all":
     @echo "🚀 启动后端服务: {{servers}}"
     ./backend/.venv/bin/python -m backend.cli.run_web_server start --session-service-uri=$SUPABASE_DATABASE_URL --servers={{servers}}
 
+run-backend-in-memory:
+    @echo "🚀 启动后端服务：使用InMemory数据库"
+    ./backend/.venv/bin/python -m backend.cli.run_web_server start --servers=smartrade
+
 stop-backend servers="all":
     @echo "🛑 停止后端服务: {{servers}}"
     ./backend/.venv/bin/python -m backend.cli.run_web_server stop --servers={{servers}}

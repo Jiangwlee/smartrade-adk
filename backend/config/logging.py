@@ -173,6 +173,9 @@ def setup_logging(
     logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     logging.getLogger("watchdog").setLevel(logging.WARNING)
 
+    # 抑制ADK的App name mismatch警告（不影响功能）
+    logging.getLogger("google_adk.google.adk.runners").setLevel(logging.ERROR)
+
     # 记录日志系统已初始化
     logger = logging.getLogger(__name__)
     logger.info("="*60)

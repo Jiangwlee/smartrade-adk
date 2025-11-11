@@ -57,7 +57,7 @@ def get_current_time(city: str) -> dict:
 
 
 root_agent = Agent(
-    name="weather_time_agent",
+    name="adk_demo",
     model=get_doubao_model(),
     # model="gemini-2.0-flash",
     description=(

@@ -291,7 +291,7 @@ def start(
 @click.option(
     "--servers",
     default="all",
-    help="要停止的服务器 (all|smartrade|adk)",
+    help="要停止的服务器 (all|smartrade)",
 )
 @click.option(
     "--log-level",
