@@ -1,0 +1,33 @@
+/* CopilotKit layout tweaks */
+.copilotKitChat {
+  max-width: var(--layout-max-width) !important;
+  width: 100% !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.copilotKitMessages {
+  max-width: var(--layout-max-width) !important;
+  width: 100% !important;
+  flex: 1;
+  overflow: auto;
+}
+
+.copilotKitInput {
+  max-width: var(--layout-max-width) !important;
+  width: 100% !important;
+  margin-top: auto;
+}
+
+.copilotKitMessage.toolCallMessage {
+  background: var(--tool-call-message-bg);
+  color: var(--tool-call-message-text);
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  max-width: 100%;
+  border: 0px;
+}

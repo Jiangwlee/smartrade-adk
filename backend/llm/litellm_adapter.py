@@ -4,6 +4,9 @@ import enum
 from pydantic import BaseModel
 from google.adk.models.lite_llm import LiteLlm
 import httpx
+import litellm
+
+litellm._turn_on_debug()
 
 logger = logging.getLogger("swkj." + __name__)
 
@@ -57,13 +60,20 @@ class ZAI_CONFIG(LLMConfig):
     api_key: str = os.getenv("ZHIPU_API_KEY")
     base_url: str = "https://open.bigmodel.cn/api/coding/paas/v4"
 
+class QWEN3_CONFIG(LLMConfig):
+    model: str = "ollama_chat/qwen3:30b"
+    api_key: str = "ollama"
+    base_url: str = "http://ubuntu-mindora.local:11434"
+
 class LLMProvider(enum.Enum):
     DOUBAO = "doubao-seed-1-6-251015"
     GLM = "glm-4.6"
+    QWEN = "qwen3:30b"
 
 PROVIDERS_MAP = {
     LLMProvider.DOUBAO: DOUBAO_CONFIG(model=f"openai/{LLMProvider.DOUBAO.value}"),
-    LLMProvider.GLM: ZAI_CONFIG(model=f"openai/{LLMProvider.GLM.value}")
+    LLMProvider.GLM: ZAI_CONFIG(model=f"openai/{LLMProvider.GLM.value}"),
+    LLMProvider.QWEN: QWEN3_CONFIG(),
 }
 
 model_cache = {}
@@ -95,6 +105,9 @@ def get_doubao_model() -> LiteLlm:
 
 def get_glm_model() -> LiteLlm:
     return get_litellm_model(LLMProvider.GLM)
+
+def get_qwen3_model() -> LiteLlm:
+    return get_litellm_model(LLMProvider.QWEN)
 
 def get_deepseek_model() -> LiteLlm:
     return LiteLlm(

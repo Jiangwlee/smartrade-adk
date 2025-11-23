@@ -4,7 +4,7 @@ set export
 # Backend commands - 统一的 web server 管理
 run-backend servers="all":
     @echo "🚀 启动后端服务: {{servers}}"
-    ./backend/.venv/bin/python -m backend.cli.run_web_server start --session-service-uri=$SUPABASE_DATABASE_URL --servers={{servers}}
+    ./backend/.venv/bin/python -m backend.cli.run_web_server start --session-service-uri=$DATABASE_URL --servers={{servers}}
 
 run-backend-in-memory:
     @echo "🚀 启动后端服务：使用InMemory数据库"
@@ -16,7 +16,7 @@ stop-backend servers="all":
 
 run-adk:
     @echo "🚀 启动ADK服务"
-    adk web backend/agents --session_service_uri=$SUPABASE_DATABASE_URL
+    source ./backend/.venv/bin/activate && adk web backend/agents --session_service_uri=$DATABASE_URL
 
 run-frontend:
     @echo "🚀 启动Smartrade前端服务"
