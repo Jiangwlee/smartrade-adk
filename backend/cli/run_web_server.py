@@ -3,7 +3,6 @@
 
 提供统一的命令行接口来启动和停止不同的 web server。
 """
-import logging
 import os
 import sys
 import time
@@ -13,10 +12,13 @@ from typing import Optional
 
 import click
 import uvicorn
+from uvicorn.supervisors import ChangeReload
 from dotenv import load_dotenv
+import litellm
 
 from .utils.pid_manager import write_pid, read_pids, cleanup_pid
 from .utils.process_manager import check_port_available, kill_process, verify_process_and_port
+from ..config.logging import setup_logging, get_logger
 
 # 添加 backend 目录到 Python path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -24,7 +26,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 # 加载环境变量
 load_dotenv(dotenv_path=Path(__file__).resolve().parents[3] / ".env")
 
-logger = logging.getLogger(__name__)
+if os.environ.get("LITELLM_DEBUG", "false").lower() == "true":
+    litellm._turn_on_debug()
+
 
 AGENT_DIR = "backend/agents/"
 
@@ -34,14 +38,8 @@ SERVER_CONFIG = {
     # "adk": {"port": 8001, "name": "ADK Web Server"},
 }
 
-
-def setup_logging(log_level: str):
-    """配置日志"""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-
+setup_logging()
+logger = get_logger(__name__)
 
 def start_single_server(
     server_name: str,
@@ -78,43 +76,23 @@ def start_single_server(
     # 准备参数
     allow_origins_list = list(allow_origins) if allow_origins else None
 
-    # 根据服务器类型创建应用
-    if server_name == "smartrade":
-        from .smartrade_web_server import get_smartrade_web_app
+    # 设置应用配置（用于 app_factory 模块）
+    from .app_factory import set_app_config
 
-        app = get_smartrade_web_app(
-            agents_dir=AGENT_DIR, 
-            session_service_uri=session_service_uri,
-            artifact_service_uri=artifact_service_uri,
-            memory_service_uri=memory_service_uri,
-            eval_storage_uri=eval_storage_uri,
-            allow_origins=allow_origins_list,
-        )
-
-    elif server_name == "adk":
-        from google.adk.cli.fast_api import get_fast_api_app
-
-        app = get_fast_api_app(
-            agents_dir=AGENT_DIR,
-            web=False,
-            session_service_uri=session_service_uri,
-            artifact_service_uri=artifact_service_uri,
-            memory_service_uri=memory_service_uri,
-            eval_storage_uri=eval_storage_uri,
-            allow_origins=allow_origins_list,
-            trace_to_cloud=trace_to_cloud,
-            reload_agents=reload,
-            host=host,
-            port=port,
-        )
-
-    else:
-        click.secho(f"❌ 不支持的服务器类型: {server_name}", fg="red")
-        sys.exit(1)
+    set_app_config(
+        server_name=server_name,
+        agents_dir=AGENT_DIR,
+        session_service_uri=session_service_uri,
+        artifact_service_uri=artifact_service_uri,
+        memory_service_uri=memory_service_uri,
+        eval_storage_uri=eval_storage_uri,
+        allow_origins=allow_origins_list,
+    )
 
     # 记录当前进程 PID
     current_pid = os.getpid()
     write_pid(server_name, current_pid)
+    
 
     # 显示启动信息
     click.secho(
@@ -130,18 +108,25 @@ def start_single_server(
     )
 
     # 配置并启动 uvicorn
+    # 使用工厂路径 "backend.cli.app_factory:get_app" 以支持 reload 功能
     config = uvicorn.Config(
-        app,
+        "backend.cli.app_factory:get_app",
         host=host,
         port=port,
         reload=reload,
+        reload_dirs=[str(Path(__file__).resolve().parents[1])] if reload else None,
         log_level=log_level.lower(),
+        factory=True,
     )
 
     server = uvicorn.Server(config)
 
     try:
-        server.run()
+        if config.should_reload:
+            sock = config.bind_socket()
+            ChangeReload(config, target=server.run, sockets=[sock]).run()
+        else:
+            server.run()
     except KeyboardInterrupt:
         logger.info(f"{server_title} stopped by user")
     except Exception as e:
@@ -228,7 +213,7 @@ def start(
     log_level: str,
 ):
     """启动 web server"""
-    setup_logging(log_level)
+    setup_logging(log_level=log_level)
 
     if servers == "all":
         # 启动所有服务器

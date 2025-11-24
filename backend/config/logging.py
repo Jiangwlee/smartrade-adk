@@ -176,6 +176,10 @@ def setup_logging(
     # 抑制ADK的App name mismatch警告（不影响功能）
     logging.getLogger("google_adk.google.adk.runners").setLevel(logging.ERROR)
 
+    # 设置AG_UI的Logging
+    from ag_ui_adk import _configure_logging_from_env
+    _configure_logging_from_env()
+
     # 记录日志系统已初始化
     logger = logging.getLogger(__name__)
     logger.info("="*60)

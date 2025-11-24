@@ -4,9 +4,6 @@ import enum
 from pydantic import BaseModel
 from google.adk.models.lite_llm import LiteLlm
 import httpx
-import litellm
-
-litellm._turn_on_debug()
 
 logger = logging.getLogger("swkj." + __name__)
 
@@ -38,7 +35,7 @@ def configure_litellm_http_client():
         # litellm 1.0+版本支持
         litellm.client_session = _http_client
         litellm.aclient_session = _http_client
-        logger.info("✅ Configured LiteLLM with persistent HTTP client (connection pooling enabled)")
+        logger.debug("✅ Configured LiteLLM with persistent HTTP client (connection pooling enabled)")
     except AttributeError:
         # 旧版本litellm不支持，记录警告
         logger.warning("⚠️ Current litellm version doesn't support custom HTTP client. Connection pooling disabled.")
@@ -85,17 +82,17 @@ def get_litellm_model(model: LLMProvider) -> LiteLlm:
         model (LLMProvider): The name of the model to instantiate.
     """
     # 首次调用时配置HTTP连接池
-    logger.info("🔧 Configuring LiteLLM HTTP client...")
+    logger.debug("🔧 Configuring LiteLLM HTTP client...")
     configure_litellm_http_client()
 
     if model in PROVIDERS_MAP:
         llm_config = PROVIDERS_MAP[model]
-        logger.info(f"Using LLM Config: {llm_config.model_dump()}")
+        logger.debug(f"Using LLM Config: {llm_config.model_dump()}")
         if llm_config.model not in model_cache:
-            logger.info(f"📦 Creating new LiteLlm instance for model: {llm_config.model}")
+            logger.debug(f"📦 Creating new LiteLlm instance for model: {llm_config.model}")
             model_cache[llm_config.model] = LiteLlm(model=llm_config.model, api_key=llm_config.api_key, base_url=llm_config.base_url)
         else:
-            logger.info(f"♻️ Reusing cached LiteLlm instance for model: {llm_config.model}")
+            logger.debug(f"♻️ Reusing cached LiteLlm instance for model: {llm_config.model}")
         return model_cache[llm_config.model]
     else:
         return None
