@@ -15,7 +15,6 @@ from dataclasses import asdict
 from backend.crawlers.jinrongjie.jrj import HangQingType
 from backend.llm import get_deepseek_model, get_glm_model
 from ...utils.kline_helper import KlineHelper
-from ...agent_utils import suppress_output_callback
 
 import backend.crawlers.jinrongjie.jrj as jrj_crawler
 

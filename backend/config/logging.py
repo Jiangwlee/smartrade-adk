@@ -8,6 +8,7 @@
 - 根据环境变量自动配置
 """
 
+import os
 import logging
 import logging.handlers
 import sys
@@ -173,6 +174,31 @@ def setup_logging(
     logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     logging.getLogger("watchdog").setLevel(logging.WARNING)
 
+    # 4. 配置特定模块的日志级别
+    logger_map = {
+        "LOG_ADK_PLUGIN": ("backend.api.adk_plugins", "backend.api.adk_plugins.message_validation"),
+    }
+    for env_var, logger_names in logger_map.items():
+        level_name = os.getenv(env_var)
+        if not level_name:
+            continue
+
+        try:
+            level = getattr(logging, level_name.upper())
+        except AttributeError:
+            logging.getLogger(__name__).warning(
+                "Invalid value '%s' for %s", level_name, env_var
+            )
+            continue
+
+        # 设置模块 logger 级别
+        for logger_name in logger_names:
+            logging.getLogger(logger_name).setLevel(level)
+
+        # 如需局部 DEBUG，则挂载共享 DEBUG handler
+        if level == logging.DEBUG:
+            attach_debug_handler(logger_names, enable_console=True)
+
     # 抑制ADK的App name mismatch警告（不影响功能）
     logging.getLogger("google_adk.google.adk.runners").setLevel(logging.ERROR)
 
@@ -221,11 +247,99 @@ def auto_setup_logging():
         setup_logging()
 
 
+# 全局共享的 DEBUG handler（文件 + 可选控制台），懒创建
+_shared_debug_file_handler: Optional[logging.Handler] = None
+_shared_debug_console_handler: Optional[logging.Handler] = None
+
+
+def attach_debug_handler(
+    logger_names: list[str] | tuple[str, ...] | str,
+    log_dir: Optional[Path] = None,
+    enable_console: bool = False,
+    propagate: bool = False,
+):
+    """将指定模块挂载到全局共享的 DEBUG handler。
+
+    适用于“全局 INFO，局部 DEBUG”场景，避免调整根 logger 级别。
+
+    Args:
+        logger_names: 单个或多个 logger 名称。
+        log_dir: 日志目录，默认项目根目录/log。
+        enable_console: 是否向终端输出 DEBUG（默认只写文件）。
+        propagate: 是否继续冒泡到父 logger（默认 False 以避免重复输出）。
+    """
+
+    global _shared_debug_file_handler, _shared_debug_console_handler
+
+    if isinstance(logger_names, str):
+        target_loggers = [logger_names]
+    else:
+        target_loggers = list(logger_names)
+
+    if log_dir is None:
+        project_root = Path(__file__).resolve().parents[2]
+        log_dir = project_root / "log"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    # 文件 formatter（保持与全局一致）
+    if settings.log_format == "json":
+        formatter: logging.Formatter = JSONFormatter()
+    else:
+        formatter = logging.Formatter(
+            fmt='%(asctime)s - %(levelname)s - %(name)s - [%(filename)s:%(lineno)d] - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+
+    # 懒创建共享文件 handler（DEBUG 级别）
+    if _shared_debug_file_handler is None:
+        debug_log_file = log_dir / "debug_modules.log"
+        _shared_debug_file_handler = logging.handlers.TimedRotatingFileHandler(
+            filename=debug_log_file,
+            when='midnight',
+            interval=1,
+            backupCount=30,
+            encoding='utf-8',
+        )
+        _shared_debug_file_handler.setLevel(logging.DEBUG)
+        _shared_debug_file_handler.setFormatter(formatter)
+        # 标记，便于避免重复添加
+        _shared_debug_file_handler._shared_debug = True  # type: ignore[attr-defined]
+
+    # 懒创建共享控制台 handler（可选）
+    if enable_console and _shared_debug_console_handler is None:
+        _shared_debug_console_handler = logging.StreamHandler(sys.stdout)
+        _shared_debug_console_handler.setLevel(logging.DEBUG)
+        if settings.log_format == "json":
+            console_formatter: logging.Formatter = JSONFormatter()
+        else:
+            console_formatter = ColoredFormatter(
+                fmt='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+        _shared_debug_console_handler.setFormatter(console_formatter)
+        _shared_debug_console_handler._shared_debug = True  # type: ignore[attr-defined]
+
+    for name in target_loggers:
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = propagate
+
+        # 避免重复挂载同一共享 handler
+        existing = {id(h) for h in logger.handlers}
+        if id(_shared_debug_file_handler) not in existing:
+            logger.addHandler(_shared_debug_file_handler)
+        if enable_console and _shared_debug_console_handler and id(_shared_debug_console_handler) not in existing:
+            logger.addHandler(_shared_debug_console_handler)
+
+    return [logging.getLogger(n) for n in target_loggers]
+
+
 # 导出
 __all__ = [
     'setup_logging',
     'get_logger',
     'auto_setup_logging',
+    'attach_debug_handler',
     'ColoredFormatter',
     'JSONFormatter',
 ]

@@ -19,12 +19,14 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body>
-        {/* This points to the runtime we setup in the previous step */}
-        <CopilotKit runtimeUrl="/api/copilotkit" agent="smart_trader" publicLicenseKey={publicLicenseKey}>
-          <Hero />
-          {children}
-        </CopilotKit>
+      <body className="min-h-screen">
+        <div className="flex min-h-screen flex-col">
+          {/* This points to the runtime we setup in the previous step */}
+          <CopilotKit runtimeUrl="/api/copilotkit" agent="smart_trader" publicLicenseKey={publicLicenseKey}>
+            <Hero />
+            <div className="flex-1 min-h-0 flex flex-col">{children}</div>
+          </CopilotKit>
+        </div>
       </body>
     </html>
   );

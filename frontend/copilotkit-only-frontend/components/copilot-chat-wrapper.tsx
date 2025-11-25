@@ -9,8 +9,11 @@ export function CopilotChatWrapper() {
   useCopilotToolCallRenderer();
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <CopilotChat className="w-full" labels={smartradeAssistantLabels} />
+    <div className="chat-wrapper flex flex-col flex-1 min-h-0 h-full w-full max-w-3xl mx-auto self-stretch">
+      <CopilotChat
+        className="chat-fill flex flex-1 min-h-0 h-full w-full flex-col overflow-hidden"
+        labels={smartradeAssistantLabels}
+      />
     </div>
   );
 }

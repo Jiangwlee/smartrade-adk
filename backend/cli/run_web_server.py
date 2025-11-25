@@ -51,7 +51,6 @@ def start_single_server(
     eval_storage_uri: Optional[str],
     trace_to_cloud: bool,
     reload: bool,
-    log_level: str,
 ):
     """启动单个 server
 
@@ -115,7 +114,6 @@ def start_single_server(
         port=port,
         reload=reload,
         reload_dirs=[str(Path(__file__).resolve().parents[1])] if reload else None,
-        log_level=log_level.lower(),
         factory=True,
     )
 
@@ -195,11 +193,6 @@ def cli():
     default=False,
     help="启用自动重载（开发模式）",
 )
-@click.option(
-    "--log-level",
-    default="INFO",
-    help="日志级别",
-)
 def start(
     servers: str,
     host: str,
@@ -210,11 +203,8 @@ def start(
     eval_storage_uri: Optional[str],
     trace_to_cloud: bool,
     reload: bool,
-    log_level: str,
 ):
     """启动 web server"""
-    setup_logging(log_level=log_level)
-
     if servers == "all":
         # 启动所有服务器
         server_names = list(SERVER_CONFIG.keys())
@@ -235,7 +225,6 @@ def start(
                     eval_storage_uri,
                     trace_to_cloud,
                     reload,
-                    log_level,
                 ),
             )
             process.start()
@@ -268,7 +257,6 @@ def start(
             eval_storage_uri=eval_storage_uri,
             trace_to_cloud=trace_to_cloud,
             reload=reload,
-            log_level=log_level,
         )
 
 
@@ -278,15 +266,9 @@ def start(
     default="all",
     help="要停止的服务器 (all|smartrade)",
 )
-@click.option(
-    "--log-level",
-    default="INFO",
-    help="日志级别",
-)
-def stop(servers: str, log_level: str):
-    """停止 web server"""
-    setup_logging(log_level)
 
+def stop(servers: str):
+    """停止 web server"""
     # 读取所有或指定的 PID
     if servers == "all":
         pids = read_pids()

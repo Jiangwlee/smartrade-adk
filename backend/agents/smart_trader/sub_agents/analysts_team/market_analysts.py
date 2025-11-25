@@ -5,11 +5,11 @@ from google.adk.tools import ToolContext
 from google.adk.tools.agent_tool import AgentTool
 from langchain_community.tools import TavilySearchResults
 
-from backend.llm import get_doubao_model, get_glm_model, get_deepseek_model
+from backend.llm import get_glm_model, get_deepseek_model
 import backend.crawlers.taoguba.tgb_jinghua as tgb_crawler
 import backend.crawlers.tonghuashun.ths_hot_board as ths_crawler
 
-from ...agent_utils import suppress_output_callback, print_before_model_information
+from ...agent_utils import print_before_model_information
 
 # Instantiate LangChain tool
 tavily_search = TavilySearchResults(

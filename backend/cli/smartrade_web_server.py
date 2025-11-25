@@ -38,10 +38,6 @@ def get_smartrade_web_app(
     Returns:
         FastAPI 应用实例
     """
-
-    # 初始化全局日志系统（在应用启动时执行一次）
-    setup_logging()
-
     app = FastAPI(
         title="Smartrade Web Server",
         description="A股交易大师",
