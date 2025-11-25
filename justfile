@@ -22,3 +22,6 @@ run-frontend:
     @echo "🚀 启动Smartrade前端服务"
     cd frontend/copilotkit-only-frontend && npm run dev
 
+sync:
+    @echo "🚀 同步Python依赖"
+    cd backend && uv lock --upgrade && uv sync
